@@ -764,11 +764,27 @@ class roundcube_catchall extends rcube_plugin
     }
 
     /**
-     * Get configured domain.
+     * Get configured domain, falling back to the logged-in user's email domain
+     * or the configured autologin_user's domain if nobody is logged in yet.
      */
     private function get_domain(): ?string
     {
         $domain = $this->rc->config->get('catchall_domain', '');
-        return $domain ?: null;
+        if ($domain) {
+            return $domain;
+        }
+
+        $candidate = '';
+        if ($this->rc->user && method_exists($this->rc->user, 'get_username')) {
+            $candidate = (string) $this->rc->user->get_username();
+        }
+        if (!$candidate) {
+            $candidate = (string) $this->rc->config->get('catchall_autologin_user', '');
+        }
+        if ($candidate && ($at = strrpos($candidate, '@')) !== false) {
+            $derived = substr($candidate, $at + 1);
+            return $derived ?: null;
+        }
+        return null;
     }
 }
