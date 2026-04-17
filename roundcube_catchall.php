@@ -354,8 +354,11 @@ class roundcube_catchall extends rcube_plugin
         $headers = $storage->get_message_headers($uid, $mbox);
 
         if (!$headers) {
+            rcube::console("catchall: get_message_headers returned null");
             return $args;
         }
+
+        rcube::console("catchall: others keys=" . implode(',', array_keys((array)($headers->others ?? []))));
 
         // Look for the delivered-to address in headers
         // rcube_message_header stores non-standard headers in $others (lowercase keys)
@@ -369,12 +372,15 @@ class roundcube_catchall extends rcube_plugin
             }
         }
 
+        rcube::console("catchall: delivered_to=" . ($delivered_to ?? '(none)'));
+
         if (!$delivered_to) {
             return $args;
         }
 
         $parts = explode('@', $delivered_to);
         if (count($parts) !== 2) {
+            rcube::console("catchall: delivered_to does not have exactly one @: {$delivered_to}");
             return $args;
         }
 
