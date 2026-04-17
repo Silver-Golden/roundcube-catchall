@@ -1,0 +1,10 @@
+{
+    "name": "teh-hippo/catchall",
+    "type": "roundcube-plugin",
+    "description": "Roundcube plugin for catch-all mailboxes: auto-creates identities on reply, optional autologin, optional Forward Email API integration",
+    "license": "MIT",
+    "homepage": "https://github.com/teh-hippo/roundcube-catchall",
+    "require": {
+        "roundcube/plugin-installer": ">=0.1.3"
+    }
+}

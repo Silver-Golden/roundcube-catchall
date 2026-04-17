@@ -1,0 +1,43 @@
+<?php
+
+// Default configuration for the Roundcube Catch-all plugin.
+// Copy to config.inc.php and adjust as needed.
+
+// Comma-separated list of domains to treat as catch-all, or a single domain.
+// Replies to an address on one of these domains auto-create a matching
+// identity and preselect it as From.
+// $config['catchall_domain'] = '';
+
+// Automatically create identities when replying to an address on the
+// configured catch-all domain. When false, users must create identities
+// manually in Settings > Identities.
+$config['catchall_identity_autocreate'] = true;
+
+// Optional auto-login. When enabled with catchall_autologin_user / _pass
+// set, every anonymous request is converted to a synthetic login POST so
+// the user never sees the Roundcube login form. Disabled by default.
+$config['catchall_autologin'] = false;
+// $config['catchall_autologin_user'] = '';
+// $config['catchall_autologin_pass'] = '';
+
+// =============================================================================
+// Forward Email integration (optional)
+// =============================================================================
+// When catchall_fe_api_key (or _plain) is set alongside catchall_domain, the
+// plugin will auto-create per-alias SMTP credentials via the Forward Email
+// API on reply. Leave unset to use shared-credential mode (single alias/SMTP
+// password for the whole domain — typically a wildcard alias).
+
+// Forward Email API key (stored encrypted in user preferences via Settings UI).
+// $config['catchall_fe_api_key'] = '';
+
+// Plaintext Forward Email API key for administrator/system-level configuration.
+// Used as a fallback only when no user-level API key is stored. Suitable for
+// single-tenant add-on deployments where the operator provisions the key
+// outside the Roundcube UI.
+// SECURITY: this key is shared by every user of this Roundcube instance; use a
+// domain-scoped Forward Email key rather than an account-wide one.
+// $config['catchall_fe_api_key_plain'] = '';
+
+// Automatically delete aliases when identities are removed
+$config['catchall_fe_auto_delete'] = false;
