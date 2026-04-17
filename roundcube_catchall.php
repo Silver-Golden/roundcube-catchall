@@ -353,9 +353,7 @@ class roundcube_catchall extends rcube_plugin
         $storage = $this->rc->get_storage();
         // Ensure non-standard headers (X-Original-To, Delivered-To) are fetched.
         // Without this, $headers->others is empty for these fields.
-        $storage->set_options([
-            'fetch_headers' => trim(($storage->get_options()['fetch_headers'] ?? '') . ' X-Original-To Delivered-To'),
-        ]);
+        $storage->set_options(['fetch_headers' => 'X-Original-To Delivered-To']);
         $headers = $storage->get_message_headers($uid, $mbox);
 
         if (!$headers) {
