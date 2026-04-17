@@ -21,7 +21,7 @@
  */
 class roundcube_catchall extends rcube_plugin
 {
-    public $task = 'settings|mail|login';
+    public $task = 'settings|mail';
 
     /** @var rcmail */
     private $rc;
@@ -53,79 +53,6 @@ class roundcube_catchall extends rcube_plugin
 
         // Register AJAX actions
         $this->register_action('plugin.catchall-fe-test', [$this, 'action_test_api']);
-
-        // Autologin (optional). When the HA add-on (or operator) provisions
-        // catchall_autologin_user/pass, this hook synthesises a login POST
-        // on every anonymous request so the user never sees the login form.
-        if ($this->rc->config->get('catchall_autologin')) {
-            $this->add_hook('startup', [$this, 'autologin_startup']);
-        }
-    }
-
-    /**
-     * Auto-login startup hook.
-     *
-     * When enabled and the request is anonymous, performs the login
-     * inline via rcmail::login() then redirects to the mail task so the
-     * user never sees the login form.
-     *
-     * Security: anyone who can reach this Roundcube instance is logged in
-     * as the configured identity. In the Home Assistant add-on deployment
-     * this is gated by HA Ingress authentication.
-     */
-    public function autologin_startup($args)
-    {
-        // Already authenticated — nothing to do.
-        if (!empty($_SESSION['user_id'])) {
-            return $args;
-        }
-
-        // Let the user submit the form themselves if they are mid-login.
-        if ($args['task'] === 'login' && $args['action'] === 'login'
-            && $_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['_user'])) {
-            return $args;
-        }
-
-        $user = $this->rc->config->get('catchall_autologin_user');
-        $pass = $this->rc->config->get('catchall_autologin_pass');
-        if (empty($user) || empty($pass)) {
-            return $args;
-        }
-
-        // Resolve default IMAP host the same way the login form does.
-        // Roundcube 1.6+ uses `imap_host`; older versions used `default_host`.
-        $host = $this->rc->config->get('imap_host');
-        if (empty($host)) {
-            $host = $this->rc->config->get('default_host');
-        }
-        if (is_array($host)) {
-            $host = $host[0] ?? array_values($host)[0] ?? 'localhost';
-        }
-        if (empty($host)) {
-            $host = 'localhost';
-        }
-
-        // Attempt login. On success, rcmail::login() populates $_SESSION.
-        if ($this->rc->login($user, $pass, $host, true)) {
-            // Mirror what Roundcube's login controller does after rcmail::login()
-            // so the session survives subsequent requests.
-            $this->rc->session->remove('temp');
-            $this->rc->session->regenerate_id(false);
-            $this->rc->session->set_auth_cookie();
-            $this->rc->log_login();
-
-            // Redirect to mail task; this exits.
-            $this->rc->output->redirect(['_task' => 'mail']);
-        } else {
-            rcube::raise_error([
-                'code'    => 500,
-                'file'    => __FILE__,
-                'line'    => __LINE__,
-                'message' => "catchall autologin failed for user={$user} host={$host}",
-            ], true, false);
-        }
-
-        return $args;
     }
 
     // =========================================================================
@@ -791,8 +718,7 @@ class roundcube_catchall extends rcube_plugin
     }
 
     /**
-     * Get configured domain, falling back to the logged-in user's email domain
-     * or the configured autologin_user's domain if nobody is logged in yet.
+     * Get configured domain, falling back to the logged-in user's email domain.
      */
     private function get_domain(): ?string
     {
@@ -804,9 +730,6 @@ class roundcube_catchall extends rcube_plugin
         $candidate = '';
         if ($this->rc->user && method_exists($this->rc->user, 'get_username')) {
             $candidate = (string) $this->rc->user->get_username();
-        }
-        if (!$candidate) {
-            $candidate = (string) $this->rc->config->get('catchall_autologin_user', '');
         }
         if ($candidate && ($at = strrpos($candidate, '@')) !== false) {
             $derived = substr($candidate, $at + 1);

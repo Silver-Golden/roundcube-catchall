@@ -13,13 +13,6 @@
 // manually in Settings > Identities.
 $config['catchall_identity_autocreate'] = true;
 
-// Optional auto-login. When enabled with catchall_autologin_user / _pass
-// set, every anonymous request is converted to a synthetic login POST so
-// the user never sees the Roundcube login form. Disabled by default.
-$config['catchall_autologin'] = false;
-// $config['catchall_autologin_user'] = '';
-// $config['catchall_autologin_pass'] = '';
-
 // =============================================================================
 // Forward Email integration (optional)
 // =============================================================================

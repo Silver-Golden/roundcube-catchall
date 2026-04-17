@@ -9,14 +9,13 @@ many different local-parts on a domain (e.g. `anything@example.com`).
   delivered to `foo@example.com`, the plugin creates a matching Roundcube
   identity (if missing) and preselects it as the `From:` header so your
   reply goes out as `foo@`, not the base mailbox address.
-- **Optional autologin** — when configured, synthesises a login POST on every
-  anonymous request so users never see the login form. Intended for single-
-  tenant deployments gated by an outer auth layer (e.g. Home Assistant Ingress,
-  reverse proxy SSO).
 - **Optional [Forward Email](https://forwardemail.net) integration** — when
   an API key is set, the plugin additionally provisions per-alias SMTP
   credentials via the Forward Email API so each reply authenticates as
   its own alias.
+
+For persistent login / autologin, see the companion plugin
+[`teh-hippo/roundcube-remember-me`](https://github.com/teh-hippo/roundcube-remember-me).
 
 ## Installation
 
@@ -44,14 +43,6 @@ Minimum (shared-credential mode):
 ```php
 $config['catchall_domain'] = 'example.com';
 $config['catchall_identity_autocreate'] = true;
-```
-
-With autologin:
-
-```php
-$config['catchall_autologin']      = true;
-$config['catchall_autologin_user'] = 'inbox@example.com';
-$config['catchall_autologin_pass'] = '…';
 ```
 
 With Forward Email per-alias provisioning:
