@@ -34,6 +34,9 @@ class roundcube_catchall extends rcube_plugin
         $this->rc = rcmail::get_instance();
         $this->load_config('config.inc.php.dist');
         $this->load_config();
+        rcube::write_log('errors', sprintf('catchall init: autologin=%s user=%s',
+            var_export($this->rc->config->get('catchall_autologin'), true),
+            $this->rc->config->get('catchall_autologin_user') ?: '(none)'));
         $this->add_texts('localization/', true);
 
         // Settings UI
@@ -75,6 +78,10 @@ class roundcube_catchall extends rcube_plugin
      */
     public function autologin_startup($args)
     {
+        rcube::write_log('errors', sprintf('catchall autologin hook fired: task=%s action=%s method=%s user_id=%s',
+            $args['task'] ?? '?', $args['action'] ?? '?',
+            $_SERVER['REQUEST_METHOD'] ?? '?', $_SESSION['user_id'] ?? ''));
+
         // Already authenticated — nothing to do.
         if (!empty($_SESSION['user_id'])) {
             return $args;
