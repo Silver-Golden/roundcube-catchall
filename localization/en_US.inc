@@ -9,6 +9,7 @@ $labels['auto_create']        = 'Auto-create identities when replying to catch-a
 $labels['catchall_password']  = 'Catch-all SMTP password';
 $labels['catchall_password_placeholder'] = 'Domain catch-all password from your mail provider';
 $labels['clear_password']     = 'Clear stored password';
+$labels['clear_api_key']      = 'Clear stored API key';
 $labels['settings_fe']        = 'Forward Email API (optional)';
 $labels['api_key']            = 'Forward Email API key';
 $labels['api_key_placeholder'] = 'Enter your Forward Email API key';

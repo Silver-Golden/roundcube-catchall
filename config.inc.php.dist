@@ -3,9 +3,8 @@
 // Default configuration for the Roundcube Catch-all plugin.
 // Copy to config.inc.php and adjust as needed.
 
-// Comma-separated list of domains to treat as catch-all, or a single domain.
-// Replies to an address on one of these domains auto-create a matching
-// identity and preselect it as From.
+// The domain to treat as catch-all. Replies to an address on this domain
+// auto-create a matching identity and preselect it as From.
 // $config['catchall_domain'] = '';
 
 // Automatically create identities when replying to an address on the
@@ -14,12 +13,12 @@
 $config['catchall_identity_autocreate'] = true;
 
 // =============================================================================
-// Forward Email integration (optional)
+// Forward Email per-alias API provisioning (optional)
 // =============================================================================
 // When catchall_fe_api_key (or _plain) is set alongside catchall_domain, the
-// plugin will auto-create per-alias SMTP credentials via the Forward Email
-// API on reply. Leave unset to use shared-credential mode (single alias/SMTP
-// password for the whole domain — typically a wildcard alias).
+// plugin auto-creates per-alias SMTP credentials via the Forward Email API on
+// reply. Each alias gets its own password, giving fine-grained control.
+// Leave unset to use the simpler catch-all password approach instead.
 
 // Forward Email API key (stored encrypted in user preferences via Settings UI).
 // $config['catchall_fe_api_key'] = '';
@@ -32,7 +31,9 @@ $config['catchall_identity_autocreate'] = true;
 // domain-scoped Forward Email key rather than an account-wide one.
 // $config['catchall_fe_api_key_plain'] = '';
 
-// Automatically delete aliases when identities are removed
+// Automatically delete aliases when identities are removed.
+// WARNING: in shared-domain setups this deletes the alias globally, which may
+// break other users or tools that rely on it. Only enable for single-tenant use.
 $config['catchall_fe_auto_delete'] = false;
 
 // =============================================================================

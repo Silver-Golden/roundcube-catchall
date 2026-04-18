@@ -8,10 +8,13 @@
  * Roundcube identity and preselects it as the From address so the reply
  * goes out as the originally-addressed recipient.
  *
- * Optional extras:
- *  - Autologin: synthesise a login POST on every anonymous request.
- *  - Forward Email: when an API key is configured, additionally provision
- *    per-alias SMTP credentials via the Forward Email API on reply.
+ * SMTP credential modes (in priority order):
+ *  1. Per-alias API credentials — when a Forward Email API key is set, the
+ *     plugin provisions per-alias SMTP passwords automatically.
+ *  2. Catch-all password — a single domain-wide SMTP password that
+ *     authenticates as any address on the domain.
+ *  3. Default Roundcube auth — falls through to the logged-in user's
+ *     IMAP credentials (only works when From matches the login address).
  *
  * Security note: SMTP passwords are encrypted using Roundcube's des_key.
  * The security of stored credentials depends on des_key remaining secret.
@@ -72,7 +75,7 @@ class roundcube_catchall extends rcube_plugin
     }
 
     /**
-     * Render Forward Email preferences form.
+     * Render catch-all preferences form.
      */
     public function preferences_list($args)
     {
@@ -151,6 +154,17 @@ class roundcube_catchall extends rcube_plugin
             ],
         ];
 
+        // Build clear-API-key control
+        $clear_key_html = '';
+        if ($api_key) {
+            $clear_key_html = ' ' . (new html_checkbox([
+                'name'  => '_catchall_fe_clear_api_key',
+                'id'    => 'rcmfd_ca_fe_clear_api_key',
+                'value' => 1,
+            ]))->show(0) . ' <label for="rcmfd_ca_fe_clear_api_key">'
+                . rcube::Q($this->gettext('clear_api_key')) . '</label>';
+        }
+
         $args['blocks']['fe_api'] = [
             'name' => $this->gettext('settings_fe'),
             'options' => [
@@ -162,7 +176,7 @@ class roundcube_catchall extends rcube_plugin
                         'size'        => 40,
                         'type'        => 'password',
                         'placeholder' => $decrypted_key ?: $this->gettext('api_key_placeholder'),
-                    ]))->show(''),
+                    ]))->show('') . $clear_key_html,
                 ],
                 'auto_delete' => [
                     'title'   => $this->gettext('auto_delete'),
@@ -188,14 +202,17 @@ class roundcube_catchall extends rcube_plugin
         }
 
         $api_key = rcube_utils::get_input_string('_catchall_fe_api_key', rcube_utils::INPUT_POST);
+        $clear_key = rcube_utils::get_input_string('_catchall_fe_clear_api_key', rcube_utils::INPUT_POST);
         $domain  = rcube_utils::get_input_string('_catchall_domain', rcube_utils::INPUT_POST);
         $auto_create = rcube_utils::get_input_string('_catchall_identity_autocreate', rcube_utils::INPUT_POST);
         $auto_delete = rcube_utils::get_input_string('_catchall_fe_auto_delete', rcube_utils::INPUT_POST);
         $catchall_pass = rcube_utils::get_input_string('_catchall_fe_catchall_password', rcube_utils::INPUT_POST);
         $clear_pass = rcube_utils::get_input_string('_catchall_fe_clear_catchall_password', rcube_utils::INPUT_POST);
 
-        // Only update API key if user entered a new one (not blank)
-        if ($api_key !== '') {
+        // API key: clear if checkbox checked, update if new value entered
+        if ($clear_key) {
+            $args['prefs']['catchall_fe_api_key'] = '';
+        } elseif ($api_key !== '') {
             $args['prefs']['catchall_fe_api_key'] = $this->rc->encrypt($api_key);
         }
 
@@ -302,12 +319,11 @@ class roundcube_catchall extends rcube_plugin
         $domain = $this->get_domain();
         $api_key = $this->get_api_key();
 
-        // api_key is optional. When absent we operate in "shared credential"
-        // mode: the user has a wildcard alias on Forward Email whose SMTP
-        // credentials are used for all outbound (typically via autologin).
-        // In that mode we still auto-create Roundcube identities so the
-        // compose form preselects the right From address, but we don't
-        // touch the Forward Email API.
+        // api_key is optional. When absent, SMTP authentication relies on
+        // either the catch-all password (if configured) or the logged-in
+        // user's credentials. We still auto-create Roundcube identities so
+        // the compose form preselects the right From address; the actual
+        // credential swap happens in smtp_connect.
 
         // Only act on replies/forwards — use specific param keys to avoid
         // false positives from draft editing which also has a uid
@@ -416,9 +432,8 @@ class roundcube_catchall extends rcube_plugin
                     return $args;
                 }
             }
-            // Shared mode — no API call. smtp_connect will fall through to
-            // Roundcube's default auth (the logged-in wildcard credentials),
-            // which Forward Email accepts for any From on the domain.
+            // No API key — smtp_connect handles credential selection
+            // (catch-all password or default auth).
 
             // Set this identity as the sender for the compose
             // Use 'from' (email address) — Roundcube matches it against identities
@@ -506,8 +521,8 @@ class roundcube_catchall extends rcube_plugin
         $local_part = $parts[0];
 
         // RFC 5322 dot-atom: conservatively allow alnum and common punctuation.
-        // Rejects whitespace, quoted-strings, slashes, and other characters
-        // that would be unsafe to pass to the API or confuse the server.
+        // Rejects whitespace, quoted-strings, and characters that would be
+        // unsafe to pass to the API or confuse the server.
         if (!preg_match('/^[A-Za-z0-9!#$%&\'*+\/=?^_`{|}~.-]+$/', $local_part)) {
             return null;
         }
