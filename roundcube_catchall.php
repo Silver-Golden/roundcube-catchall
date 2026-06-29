@@ -324,13 +324,12 @@ class roundcube_catchall extends rcube_plugin
         
         $tmp = 4;
         syslog(LOG_WARNING, $tmp);
-    
-        syslog(LOG_WARNING, $hdr);
         // Look for the delivered-to address in headers
         // rcube_message_header stores non-standard headers in $others (lowercase keys)
         $delivered_to = null;
         foreach (['x-original-to', 'delivered-to'] as $hdr) {
             $val = $headers->others[$hdr] ?? null;
+            syslog(LOG_WARNING, $val);
             if ($val) {
                 $delivered_to = is_array($val) ? $val[0] : $val;
                 $delivered_to = trim($delivered_to);
