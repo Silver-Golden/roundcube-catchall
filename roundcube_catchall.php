@@ -329,7 +329,7 @@ class roundcube_catchall extends rcube_plugin
         $delivered_to = null;
         foreach (['x-original-to'] as $hdr) {
             $val = $headers->others[$hdr] ?? null;
-            syslog(LOG_WARNING, $val);
+            syslog(LOG_WARNING, (string) $val);
             if ($val) {
                 $delivered_to = is_array($val) ? $val[0] : $val;
                 $delivered_to = trim($delivered_to);
