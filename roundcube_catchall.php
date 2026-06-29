@@ -285,7 +285,7 @@ class roundcube_catchall extends rcube_plugin
 
         $domain = $this->get_domain();
         $tmp = 1;
-        var_dump($tmp);
+        syslog(LOG_WARNING, $tmp);
         $api_key = $this->get_api_key();
 
         // api_key is optional. When absent, SMTP authentication relies on
@@ -301,13 +301,13 @@ class roundcube_catchall extends rcube_plugin
         $uid         = $reply_uid ?: $forward_uid;
         
            $tmp = 2;
-        var_dump($tmp);
+        syslog(LOG_WARNING, $tmp);
         if (!$uid) {
             return $args;
         }
         
        $tmp = 3;
-        var_dump($tmp);
+        syslog(LOG_WARNING, $tmp);
         
         $mbox = $args['param']['mailbox'] ?? 'INBOX';
 
@@ -323,9 +323,9 @@ class roundcube_catchall extends rcube_plugin
         }
         
         $tmp = 4;
-        var_dump($tmp);
+        syslog(LOG_WARNING, $tmp);
     
-        var_dump($hdr);
+        syslog(LOG_WARNING, $hdr);
         // Look for the delivered-to address in headers
         // rcube_message_header stores non-standard headers in $others (lowercase keys)
         $delivered_to = null;
@@ -338,19 +338,19 @@ class roundcube_catchall extends rcube_plugin
             }
         }
          $tmp = 5;
-        var_dump($tmp);
-        var_dump($delivered_to);
+        syslog(LOG_WARNING, $tmp);
+        syslog(LOG_WARNING, $delivered_to);
         if (!$delivered_to) {
             return $args;
         }
  $tmp = 6;
-        var_dump($tmp);
+        syslog(LOG_WARNING, $tmp);
         $parts = explode('@', $delivered_to);
         if (count($parts) !== 2) {
             return $args;
         }
   $tmp = 7;
-        var_dump($tmp);
+        syslog(LOG_WARNING, $tmp);
         // If a domain is configured, restrict to it. Otherwise, treat every
         // Delivered-To / X-Original-To as the catch-all scope — the fact
         // that the message landed in this mailbox is sufficient proof.
@@ -358,7 +358,7 @@ class roundcube_catchall extends rcube_plugin
             return $args;
         }
  $tmp = 8;
-        var_dump($tmp);
+        syslog(LOG_WARNING, $tmp);
         // Check if an identity already exists for this address
         $identities = $this->rc->user->list_identities();
         foreach ($identities as $ident) {
@@ -371,7 +371,7 @@ class roundcube_catchall extends rcube_plugin
             }
         }
            $tmp = 9;
-        var_dump($tmp);
+        syslog(LOG_WARNING, $tmp);
         // insert_identity in Roundcube 10 does not fire identity_create_after —
         // we call provision_credentials explicitly below after insert_identity.
         $identity_data = [
