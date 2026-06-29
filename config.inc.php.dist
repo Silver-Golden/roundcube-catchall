@@ -6,6 +6,7 @@
 // The domain to treat as catch-all. Replies to an address on this domain
 // auto-create a matching identity and preselect it as From.
 // $config['catchall_domain'] = '';
+$config['catchall_domain'] = 'skynet.ie';
 
 // Automatically create identities when replying to an address on the
 // configured catch-all domain. When false, users must create identities
