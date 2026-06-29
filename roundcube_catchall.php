@@ -317,7 +317,8 @@ class roundcube_catchall extends rcube_plugin
         // Without this, $headers->others is empty for these fields.
         $storage->set_options(['fetch_headers' => 'X-Original-To Delivered-To']);
         $headers = $storage->get_message_headers($uid, $mbox);
-
+syslog(LOG_WARNING, $headers);
+        syslog(LOG_WARNING, $headers->others);
         if (!$headers) {
             return $args;
         }
