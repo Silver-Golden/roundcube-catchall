@@ -317,6 +317,8 @@ class roundcube_catchall extends rcube_plugin
         }
 
         $domain = $this->get_domain();
+        $tmp = 1;
+        var_dump($tmp);
         $api_key = $this->get_api_key();
 
         // api_key is optional. When absent, SMTP authentication relies on
@@ -330,11 +332,16 @@ class roundcube_catchall extends rcube_plugin
         $reply_uid   = $args['param']['reply_uid'] ?? null;
         $forward_uid = $args['param']['forward_uid'] ?? null;
         $uid         = $reply_uid ?: $forward_uid;
-
+        
+           $tmp = 2;
+        var_dump($tmp);
         if (!$uid) {
             return $args;
         }
-
+        
+       $tmp = 3;
+        var_dump($tmp);
+        
         $mbox = $args['param']['mailbox'] ?? 'INBOX';
 
         // Fetch the original message headers
@@ -347,7 +354,11 @@ class roundcube_catchall extends rcube_plugin
         if (!$headers) {
             return $args;
         }
-
+        
+        $tmp = 4;
+        var_dump($tmp);
+    
+        var_dump($hdr);
         // Look for the delivered-to address in headers
         // rcube_message_header stores non-standard headers in $others (lowercase keys)
         $delivered_to = null;
@@ -359,37 +370,41 @@ class roundcube_catchall extends rcube_plugin
                 break;
             }
         }
-
+         $tmp = 5;
+        var_dump($tmp);
+        var_dump($delivered_to);
         if (!$delivered_to) {
             return $args;
         }
-
+ $tmp = 6;
+        var_dump($tmp);
         $parts = explode('@', $delivered_to);
         if (count($parts) !== 2) {
             return $args;
         }
-
+  $tmp = 7;
+        var_dump($tmp);
         // If a domain is configured, restrict to it. Otherwise, treat every
         // Delivered-To / X-Original-To as the catch-all scope — the fact
         // that the message landed in this mailbox is sufficient proof.
         if ($domain && strtolower($parts[1]) !== strtolower($domain)) {
             return $args;
         }
-
+ $tmp = 8;
+        var_dump($tmp);
         // Check if an identity already exists for this address
         $identities = $this->rc->user->list_identities();
         foreach ($identities as $ident) {
             if (strtolower($ident['email']) === strtolower($delivered_to)) {
-                // Identity exists — preselect it as sender and, in API mode,
+       
                 // ensure its SMTP credentials are still valid.
-                if ($api_key) {
-                    $this->ensure_credentials((string) $ident['identity_id'], $ident['email']);
-                }
+    
                 $args['param']['from'] = $delivered_to;
                 return $args;
             }
         }
-
+           $tmp = 9;
+        var_dump($tmp);
         // insert_identity in Roundcube 10 does not fire identity_create_after —
         // we call provision_credentials explicitly below after insert_identity.
         $identity_data = [
@@ -410,28 +425,7 @@ class roundcube_catchall extends rcube_plugin
 
         if ($identity_id) {
             rcube::console("catchall: auto-created identity for {$delivered_to}");
-
-            if ($api_key) {
-                // API mode — provision a dedicated alias + SMTP creds on
-                // Forward Email. rcube_user::insert_identity does not fire
-                // identity_create_after in Roundcube 10 (only the settings
-                // flow does), so we call provision_credentials directly.
-                $creds = $this->provision_credentials((string) $identity_id, $delivered_to);
-
-                if ($creds === null) {
-                    // Provisioning failed — roll back the orphaned identity so we
-                    // retry cleanly next time rather than leaving a dead identity.
-                    try {
-                        $this->rc->user->delete_identity((int) $identity_id);
-                    } catch (Exception $e) {
-                        rcube::raise_error([
-                            'code' => 500,
-                            'message' => 'catchall: rollback delete_identity failed - ' . $e->getMessage(),
-                        ], true, false);
-                    }
-                    return $args;
-                }
-            }
+            
             // No API key — smtp_connect handles credential selection
             // (catch-all password or default auth).
 
