@@ -91,35 +91,10 @@ class roundcube_catchall extends rcube_plugin
 
         // Decrypt for display (masked)
         $decrypted_key = '';
-        if ($api_key) {
-            $decrypted_key = $this->rc->decrypt($api_key);
-            if ($decrypted_key && strlen($decrypted_key) > 8) {
-                $decrypted_key = str_repeat('*', strlen($decrypted_key) - 4)
-                    . substr($decrypted_key, -4);
-            }
-        }
 
         $masked_pass = '';
-        if ($catchall_pass) {
-            $decrypted_pass = $this->rc->decrypt($catchall_pass);
-            if ($decrypted_pass && strlen($decrypted_pass) > 4) {
-                $masked_pass = str_repeat('*', strlen($decrypted_pass) - 4)
-                    . substr($decrypted_pass, -4);
-            } elseif ($decrypted_pass) {
-                $masked_pass = '****';
-            }
-        }
-
         // Build clear-password control: checkbox shown only when a password is stored
         $clear_pass_html = '';
-        if ($catchall_pass) {
-            $clear_pass_html = ' ' . (new html_checkbox([
-                'name'  => '_catchall_fe_clear_catchall_password',
-                'id'    => 'rcmfd_ca_fe_clear_catchall_password',
-                'value' => 1,
-            ]))->show(0) . ' <label for="rcmfd_ca_fe_clear_catchall_password">'
-                . rcube::Q($this->gettext('clear_password')) . '</label>';
-        }
 
         $args['blocks']['main'] = [
             'name' => $this->gettext('settings_main'),
@@ -156,14 +131,6 @@ class roundcube_catchall extends rcube_plugin
 
         // Build clear-API-key control
         $clear_key_html = '';
-        if ($api_key) {
-            $clear_key_html = ' ' . (new html_checkbox([
-                'name'  => '_catchall_fe_clear_api_key',
-                'id'    => 'rcmfd_ca_fe_clear_api_key',
-                'value' => 1,
-            ]))->show(0) . ' <label for="rcmfd_ca_fe_clear_api_key">'
-                . rcube::Q($this->gettext('clear_api_key')) . '</label>';
-        }
 
         $args['blocks']['fe_api'] = [
             'name' => $this->gettext('settings_fe'),
